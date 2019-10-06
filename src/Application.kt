@@ -2,6 +2,7 @@ package com.alekseyld
 
 import com.alekseyld.di.appModule
 import com.alekseyld.model.*
+import com.alekseyld.model.TempStats.dateUpdated
 import com.alekseyld.service.IFirmwareService
 import com.alekseyld.service.IFirmwareService.Result.AlreadyUpdated
 import com.alekseyld.service.IFirmwareService.Result.RequiredUpdate
@@ -26,6 +27,8 @@ import io.ktor.routing.post
 import io.ktor.routing.routing
 import kotlinx.css.*
 import kotlinx.html.*
+import org.jetbrains.exposed.sql.selectAll
+import org.jetbrains.exposed.sql.transactions.transaction
 import org.koin.core.context.startKoin
 import org.koin.ktor.ext.inject
 import org.slf4j.LoggerFactory
@@ -36,16 +39,20 @@ import java.security.MessageDigest
 
 fun main(args: Array<String>): Unit {
     io.ktor.server.netty.EngineMain.main(args)
-
-    startKoin {
-        modules(appModule)
-    }
 }
 
 @Suppress("unused") // Referenced in application.conf
 @kotlin.jvm.JvmOverloads
 fun Application.module(testing: Boolean = false) {
     val client = HttpClient(Apache) {}
+
+    if (!testing) {
+        startKoin {
+            modules(appModule)
+        }
+
+        DatabaseFactory.init()
+    }
 
     routing {
 
@@ -56,13 +63,21 @@ fun Application.module(testing: Boolean = false) {
         }
 
         get("/html-dsl") {
+
+
+
             call.respondHtml {
                 body {
                     h1 { +"HTML" }
                     ul {
-                        for (n in 1..10) {
-                            li { +"$n" }
+                        transaction {
+                            TempStats.selectAll().forEach {
+                                li { "${it[dateUpdated]}" }
+                            }
                         }
+//                        for (n in 1..10) {
+//                            li { +"$n" }
+//                        }
                     }
                 }
             }
