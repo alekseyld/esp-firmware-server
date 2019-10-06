@@ -7,6 +7,6 @@ interface IFirmwareRepository {
 
     fun saveFirmwareBin(macAddress: String, inputStream: InputStream)
 
-    fun getFirmwareBin(macAddress: String) : File
+    fun getFirmwareBin(macAddress: String) : File?
 
 }

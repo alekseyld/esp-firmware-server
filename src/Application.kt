@@ -1,5 +1,6 @@
 package com.alekseyld
 
+import com.alekseyld.controller.firmwareController
 import com.alekseyld.di.appModule
 import com.alekseyld.model.*
 import com.alekseyld.model.TempStats.dateUpdated
@@ -44,7 +45,7 @@ fun main(args: Array<String>): Unit {
 @Suppress("unused") // Referenced in application.conf
 @kotlin.jvm.JvmOverloads
 fun Application.module(testing: Boolean = false) {
-    val client = HttpClient(Apache) {}
+//    val client = HttpClient(Apache) {}
 
     if (!testing) {
         startKoin {
@@ -56,16 +57,13 @@ fun Application.module(testing: Boolean = false) {
 
     routing {
 
-        val firmwareService by inject<IFirmwareService>()
+        firmwareController()
 
         get("/") {
             call.respondText("HELLO WORLD!", contentType = ContentType.Text.Plain)
         }
 
         get("/html-dsl") {
-
-
-
             call.respondHtml {
                 body {
                     h1 { +"HTML" }
@@ -93,67 +91,6 @@ fun Application.module(testing: Boolean = false) {
                 }
                 rule("p.myclass") {
                     color = Color.blue
-                }
-            }
-        }
-
-        post("/upload") { _ ->
-            // retrieve all multipart data (suspending)
-            val multipart = call.receiveMultipart()
-            multipart.forEachPart { part ->
-                // if part is a file (could be form item)
-                if(part is PartData.FileItem) {
-                    // retrieve file name of upload
-                    val name = part.originalFileName!!
-                    val file = File("/uploads/$name")
-
-                    // use InputStream from part to save file
-                    part.streamProvider().use { its ->
-                        // copy the stream to the file with buffering
-                        file.outputStream().buffered().use {
-                            // note that this is blocking
-                            its.copyTo(it)
-                        }
-                    }
-                }
-                // make sure to dispose of the part after use to prevent leaks
-                part.dispose()
-            }
-        }
-
-        get("/firmware") {
-            val call: ApplicationCall = call.request.call
-
-            lateinit var espHeaders: EspHeaders
-
-            call.request.headers.apply {
-                espHeaders = EspHeaders(
-                    staMac = get(HEADER_STA_MAC)!!,
-                    freeSpace = get(HEADER_FREE_SPACE)!!,
-                    sketchSize = get(HEADER_SKETCH_SIZE)!!,
-                    sketchMd5 = get(HEADER_SKETCH_MD5)!!,
-                    chipSize = get(HEADER_CHIP_SIZE)!!,
-                    sdkVersion = get(HEADER_SDK_VERSION)!!,
-                    mode = get(HEADER_MODE)!!
-                )
-            }
-
-            val result = firmwareService.processUpdateRequest(espHeaders)
-
-            when (result) {
-                is RequiredUpdate -> {
-                    call.response.status(HttpStatusCode.OK)
-                    call.response.header("x-MD5", result.md5Hash)
-
-                    call.response.header(
-                        "Content-Disposition",
-                        "attachment; filename=${result.updatedFirmware.name}"
-                    )
-
-                    call.respondFile(result.updatedFirmware)
-                }
-                is AlreadyUpdated -> {
-                    call.respond(HttpStatusCode.NotModified)
                 }
             }
         }
