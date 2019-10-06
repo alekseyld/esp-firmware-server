@@ -1,5 +1,6 @@
 package com.alekseyld
 
+import com.alekseyld.service.IFirmwareService
 import io.ktor.application.*
 import io.ktor.response.*
 import io.ktor.request.*
@@ -12,6 +13,9 @@ import io.ktor.client.*
 import io.ktor.client.engine.apache.*
 import kotlin.test.*
 import io.ktor.server.testing.*
+import io.mockk.mockk
+import org.koin.core.context.startKoin
+import org.koin.dsl.module
 
 class ApplicationTest {
     @Test
@@ -23,4 +27,30 @@ class ApplicationTest {
             }
         }
     }
+
+    @Test
+    fun `firmware on valid params`() {
+
+        val mockFirmwareService = mockk<IFirmwareService>()
+
+        val mockModule = module {
+            single { mockFirmwareService }
+        }
+
+        startKoin {
+            modules(mockModule)
+        }
+
+        withTestApplication({ module(testing = true) }) {
+            handleRequest(HttpMethod.Get, "/firmware") {
+//                addHeader()
+
+
+            }.apply {
+
+
+            }
+        }
+    }
+
 }

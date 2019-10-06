@@ -1,5 +1,10 @@
 package com.alekseyld
 
+import com.alekseyld.di.appModule
+import com.alekseyld.model.*
+import com.alekseyld.service.IFirmwareService
+import com.alekseyld.service.IFirmwareService.Result.AlreadyUpdated
+import com.alekseyld.service.IFirmwareService.Result.RequiredUpdate
 import io.ktor.application.Application
 import io.ktor.application.ApplicationCall
 import io.ktor.application.call
@@ -21,21 +26,31 @@ import io.ktor.routing.post
 import io.ktor.routing.routing
 import kotlinx.css.*
 import kotlinx.html.*
+import org.koin.core.context.startKoin
+import org.koin.ktor.ext.inject
 import org.slf4j.LoggerFactory
 import java.io.File
 import java.math.BigInteger
 import java.security.MessageDigest
 
 
-fun main(args: Array<String>): Unit = io.ktor.server.netty.EngineMain.main(args)
+fun main(args: Array<String>): Unit {
+    io.ktor.server.netty.EngineMain.main(args)
+
+    startKoin {
+        modules(appModule)
+    }
+}
 
 @Suppress("unused") // Referenced in application.conf
 @kotlin.jvm.JvmOverloads
 fun Application.module(testing: Boolean = false) {
-    val client = HttpClient(Apache) {
-    }
+    val client = HttpClient(Apache) {}
 
     routing {
+
+        val firmwareService by inject<IFirmwareService>()
+
         get("/") {
             call.respondText("HELLO WORLD!", contentType = ContentType.Text.Plain)
         }
@@ -94,47 +109,38 @@ fun Application.module(testing: Boolean = false) {
         get("/firmware") {
             val call: ApplicationCall = call.request.call
 
-            val espHash = call.request.headers["x-ESP8266-sketch-md5"]
+            lateinit var espHeaders: EspHeaders
 
-            //x-ESP8266-sketch-md5
-            //X-ESP8266-STA-MAC
-            //x-ESP8266-free-space
-            //x-ESP8266-sketch-size
-            //x-ESP8266-sketch-md5
-            //x-ESP8266-chip-size
-            //x-ESP8266-sdk-version
-            //x-ESP8266-mode
-
-            val pathBin = "./firmwares/esp-firebase.ino.generic.bin"
-            val file = File(pathBin)
-
-            val md = MessageDigest.getInstance("MD5")
-            val hash = BigInteger(1, md.digest(file.readBytes())).toString(16).padStart(32, '0')
-
-            val logger = LoggerFactory.getLogger("FIRMWARE - ")
-            logger.debug("espHash = $espHash")
-            logger.debug("hash = $hash")
-
-            val fileSize = file.length()
-
-            val sizeInMb = fileSize / (1024.0 * 1024)
-
-            val sizeInMbStr = "%.2f".format(sizeInMb)
-
-            // construct reference to file
-            // ideally this would use a different filename
-//            val file = File("./firmwares/$filename")
-            if(espHash != hash) {
-
-                call.response.status(HttpStatusCode.OK)
-                //call.response.header("Content-Type", "application/octet-stream")
-                call.response.header("Content-Disposition", "attachment; filename=$pathBin")
-                ///call.response.header("Content-Length", sizeInMbStr)
-                call.response.header("x-MD5", hash)
-
-                call.respondFile(file)
+            call.request.headers.apply {
+                espHeaders = EspHeaders(
+                    staMac = get(HEADER_STA_MAC)!!,
+                    freeSpace = get(HEADER_FREE_SPACE)!!,
+                    sketchSize = get(HEADER_SKETCH_SIZE)!!,
+                    sketchMd5 = get(HEADER_SKETCH_MD5)!!,
+                    chipSize = get(HEADER_CHIP_SIZE)!!,
+                    sdkVersion = get(HEADER_SDK_VERSION)!!,
+                    mode = get(HEADER_MODE)!!
+                )
             }
-            else call.respond(HttpStatusCode.NotModified)
+
+            val result = firmwareService.processUpdateRequest(espHeaders)
+
+            when (result) {
+                is RequiredUpdate -> {
+                    call.response.status(HttpStatusCode.OK)
+                    call.response.header("x-MD5", result.md5Hash)
+
+                    call.response.header(
+                        "Content-Disposition",
+                        "attachment; filename=${result.updatedFirmware.name}"
+                    )
+
+                    call.respondFile(result.updatedFirmware)
+                }
+                is AlreadyUpdated -> {
+                    call.respond(HttpStatusCode.NotModified)
+                }
+            }
         }
 
     }
