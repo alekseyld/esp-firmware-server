@@ -2,40 +2,17 @@ package com.alekseyld
 
 import com.alekseyld.controller.firmwareController
 import com.alekseyld.di.appModule
-import com.alekseyld.model.*
-import com.alekseyld.model.TempStats.dateUpdated
-import com.alekseyld.service.IFirmwareService
-import com.alekseyld.service.IFirmwareService.Result.AlreadyUpdated
-import com.alekseyld.service.IFirmwareService.Result.RequiredUpdate
 import io.ktor.application.Application
 import io.ktor.application.ApplicationCall
 import io.ktor.application.call
-import io.ktor.client.HttpClient
-import io.ktor.client.engine.apache.Apache
 import io.ktor.html.respondHtml
 import io.ktor.http.ContentType
-import io.ktor.http.HttpStatusCode
-import io.ktor.http.content.PartData
-import io.ktor.http.content.forEachPart
-import io.ktor.http.content.streamProvider
-import io.ktor.request.receiveMultipart
-import io.ktor.response.header
-import io.ktor.response.respond
-import io.ktor.response.respondFile
 import io.ktor.response.respondText
 import io.ktor.routing.get
-import io.ktor.routing.post
 import io.ktor.routing.routing
 import kotlinx.css.*
 import kotlinx.html.*
-import org.jetbrains.exposed.sql.selectAll
-import org.jetbrains.exposed.sql.transactions.transaction
 import org.koin.core.context.startKoin
-import org.koin.ktor.ext.inject
-import org.slf4j.LoggerFactory
-import java.io.File
-import java.math.BigInteger
-import java.security.MessageDigest
 
 
 fun main(args: Array<String>): Unit {
@@ -60,23 +37,48 @@ fun Application.module(testing: Boolean = false) {
         firmwareController()
 
         get("/") {
-            call.respondText("HELLO WORLD!", contentType = ContentType.Text.Plain)
+            call.respondText(" WORLD!", contentType = ContentType.Text.Plain)
         }
 
         get("/html-dsl") {
             call.respondHtml {
+                head {
+                    title("Document title")
+                    meta(charset = "utf-8")
+                    styleLink("https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0/css/bootstrap.min.css")
+                    script(type = "text/javascript", src = "https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0/js/bootstrap.min.js") {}
+                }
+
                 body {
-                    h1 { +"HTML" }
-                    ul {
-                        transaction {
-                            TempStats.selectAll().forEach {
-                                li { "${it[dateUpdated]}" }
+                    nav (classes = "navbar navbar-dark sticky-top bg-dark flex-md-nowrap p-0") {
+                        a (classes = "navbar-brand col-sm-3 col-md-2 mr-0") {
+                            text("Company name")
+                        }
+                        input(
+                            classes = "form-control form-control-dark w-100",
+                            type = InputType.text
+                        ) {
+
+                        }
+                        ul (classes = "navbar-nav px-3") {
+                            li (classes = "nav-item text-nowrap") {
+                                a (classes = "nav-link") {
+                                    text("Sign out")
+                                }
                             }
                         }
-//                        for (n in 1..10) {
-//                            li { +"$n" }
-//                        }
                     }
+//                    h1 { +"HTML" }
+//                    ul {
+//                        transaction {
+//                            TempStats.selectAll().forEach {
+//                                li { "${it[dateUpdated]}" }
+//                            }
+//                        }
+////                        for (n in 1..10) {
+////                            li { +"$n" }
+////                        }
+//                    }
                 }
             }
         }
@@ -84,8 +86,14 @@ fun Application.module(testing: Boolean = false) {
         get("/styles.css") {
             call.respondCss {
                 body {
-                    backgroundColor = Color.red
+                    fontSize = 0.875.em
                 }
+                rule(".feather") {
+                    width = 16.0.px
+                    height = 16.0.px
+                    verticalAlign = VerticalAlign.textBottom
+                }
+
                 p {
                     fontSize = 2.em
                 }
