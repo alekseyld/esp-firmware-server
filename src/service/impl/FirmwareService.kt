@@ -1,7 +1,8 @@
-package com.alekseyld.service
+package com.alekseyld.service.impl
 
 import com.alekseyld.model.EspHeaders
 import com.alekseyld.repository.IFirmwareRepository
+import com.alekseyld.service.IFirmwareService
 import com.alekseyld.service.IFirmwareService.Result.AlreadyUpdated
 import com.alekseyld.service.IFirmwareService.Result.RequiredUpdate
 import com.alekseyld.utils.md5

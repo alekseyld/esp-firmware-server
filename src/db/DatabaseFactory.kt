@@ -1,6 +1,5 @@
 package com.alekseyld.db
 
-import com.alekseyld.db.tables.StatEntity
 import com.alekseyld.db.tables.TableEspClients
 import com.alekseyld.db.tables.TableNodes
 import com.alekseyld.db.tables.TableStats
@@ -21,43 +20,6 @@ object DatabaseFactory {
             create(TableNodes)
             create(TableStats)
         }
-
-        val stat = transaction {
-            StatEntity[1]
-        }
-
-//        val stat = transaction {
-//            StatEntity.new {
-//                dateUpdated = Date().time
-//            }
-//        }
-//
-//        transaction {
-//
-//            NodeEntity.new {
-//                nodeName = "Temp 1"
-//                value = 25f
-//                parentStat = stat
-//            }
-//
-//            NodeEntity.new {
-//                nodeName = "Temp 2"
-//                value = 20f
-//                parentStat = stat
-//            }
-//
-//            NodeEntity.new {
-//                nodeName = "Temp 3"
-//                value = 30f
-//                parentStat = stat
-//            }
-//        }
-
-        val nodes = transaction {
-            stat.nodes.first().nodeName
-        }
-
-        println("sadda")
     }
 
     private fun hikari(): HikariDataSource {

@@ -1,5 +1,6 @@
-package com.alekseyld.repository
+package com.alekseyld.repository.impl
 
+import com.alekseyld.repository.IFirmwareRepository
 import com.google.gson.Gson
 import com.google.gson.reflect.TypeToken
 import java.io.File

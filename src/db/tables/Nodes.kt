@@ -20,3 +20,8 @@ class NodeEntity(id: EntityID<Int>): IntEntity(id) {
 
     var parentStat by StatEntity referencedOn TableNodes.parentStat
 }
+
+data class Node(
+    val nodeName: String,
+    val value: Float
+)
