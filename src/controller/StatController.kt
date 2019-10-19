@@ -15,17 +15,6 @@ import io.ktor.routing.get
 import io.ktor.routing.put
 import org.koin.ktor.ext.inject
 
-//GET https://lysovda-sh.firebaseio.com/.json?auth={token}
-//GET https://lysovda-sh.firebaseio.com/temps.json?auth={token}
-
-//Для перезаписи
-//PUT https://lysovda-sh.firebaseio.com/temps.json?auth=
-//Body - {"id":"1", "temp":"22.0","time": {".sv":"timestamp"}}
-
-//Для добавления
-//POST https://lysovda-sh.firebaseio.com/temps.json?auth=
-//Body - {"id":"1", "temp":"22.0","time": {".sv":"timestamp"}}
-
 fun Routing.statController() {
 
     val statService by inject<IStatService>()
@@ -33,7 +22,9 @@ fun Routing.statController() {
     val gson by inject<Gson>()
     val nodeTypeToken by inject<TypeToken<List<Node>>>()
 
-    //[{"nodeName":"Name 1", "value": 10.0}, {"nodeName":"Name 2", "value": 15.0}]
+    /* Body example
+     *   [{"nodeName":"Name 1", "value": 10.0}, {"nodeName":"Name 2", "value": 15.0}]
+     */
     put("/stats") {
         val body = call.receiveText()
 

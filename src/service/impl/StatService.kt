@@ -6,14 +6,13 @@ import com.alekseyld.repository.IStatRepository
 import com.alekseyld.service.IStatService
 
 class StatService(
-    private val localRepository: IStatRepository
+    private val localRepository: IStatRepository,
+    private val firebaseRepository: IStatRepository
 ) : IStatService {
 
     override fun putNodes(nodes: List<Node>) {
-
         localRepository.putNodes(nodes)
-
-        //TODO Send to FireBase
+        firebaseRepository.putNodes(nodes)
     }
 
     override fun getAllStats(): List<Stat> =

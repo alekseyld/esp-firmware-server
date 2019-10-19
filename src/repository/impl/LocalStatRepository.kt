@@ -8,7 +8,7 @@ import com.alekseyld.repository.IStatRepository
 import org.jetbrains.exposed.sql.transactions.transaction
 import java.util.*
 
-class StatRepository : IStatRepository {
+class LocalStatRepository : IStatRepository {
 
     override fun putNodes(nodes: List<Node>) {
         transaction {
