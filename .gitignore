@@ -1,4 +1,4 @@
-smarthomedb.mv.db
+*.db
 credentials
 
 build

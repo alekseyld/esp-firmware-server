@@ -16,3 +16,8 @@ class StatEntity(id: EntityID<Int>): IntEntity(id) {
 
     val nodes by NodeEntity referrersOn TableNodes.parentStat
 }
+
+data class Stat(
+    val dateUpdated: Long,
+    val nodes: List<Node>
+)
