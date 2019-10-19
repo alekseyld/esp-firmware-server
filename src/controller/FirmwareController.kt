@@ -70,7 +70,7 @@ fun Routing.firmwareController() {
             if(part is PartData.FileItem) {
                 // retrieve file name of upload
                 val name = part.originalFileName!!
-                val file = File("/uploads/$name")
+                val file = File("./firmwares/$name")
 
                 // use InputStream from part to save file
                 part.streamProvider().use { its ->

@@ -1,6 +1,7 @@
 package com.alekseyld
 
 import com.alekseyld.controller.firmwareController
+import com.alekseyld.db.DatabaseFactory
 import com.alekseyld.di.appModule
 import io.ktor.application.Application
 import io.ktor.application.ApplicationCall
