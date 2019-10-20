@@ -17,9 +17,10 @@ class FirmwareService(
 
         val localHash = firmwareFile?.md5()
 
-        return if (espHeaders.sketchMd5 != localHash) {
+        return if (firmwareFile != null
+            && espHeaders.sketchMd5 != localHash) {
 
-            RequiredUpdate(firmwareFile!!, localHash!!)
+            RequiredUpdate(firmwareFile, localHash!!)
         } else {
 
             AlreadyUpdated

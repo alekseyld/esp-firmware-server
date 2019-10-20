@@ -22,6 +22,9 @@ import org.koin.dsl.module
 const val FIREBASE_STAT_REPO = "firebase"
 const val LOCAL_STAT_REPO = "local"
 
+const val TYPE_NODE = "type_node"
+const val TYPE_FIREBASE_MODEL = "type_fb_model"
+
 inline fun <reified T> inject() = lazy {
         object : KoinComponent {
             val value: T by inject()
@@ -36,19 +39,27 @@ val appModule = module {
 
     single<IFirmwareService> { FirmwareService(get()) }
 
-    single<IStatRepository>(named(FIREBASE_STAT_REPO)) { FirebaseRepository(get()) }
+    single<IStatRepository>(named(FIREBASE_STAT_REPO)) {
+        FirebaseRepository(
+            get(),
+            get(named(TYPE_FIREBASE_MODEL))
+        )
+    }
 
     single<IStatRepository>(named(LOCAL_STAT_REPO)) { LocalStatRepository() }
 
     single<IStatService> {
         StatService(
-            get(named(FIREBASE_STAT_REPO)),
-            get(named(LOCAL_STAT_REPO))
+            get(named(LOCAL_STAT_REPO)),
+            get(named(FIREBASE_STAT_REPO))
         )
     }
 
     single { Gson() }
 
-    single<TypeToken<List<Node>>> { object : TypeToken<List<Node>>() {} }
+    single(named(TYPE_NODE)) { object : TypeToken<List<Node>>() {} }
+
+    single(named(TYPE_FIREBASE_MODEL))
+        { object : TypeToken<List<FirebaseRepository.FirebaseModel>>() {} }
 
 }

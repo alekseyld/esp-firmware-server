@@ -6,23 +6,28 @@ import com.alekseyld.db.tables.Stat
 import com.alekseyld.db.tables.StatEntity
 import com.alekseyld.repository.IStatRepository
 import org.jetbrains.exposed.sql.transactions.transaction
-import java.util.*
 
 class LocalStatRepository : IStatRepository {
 
-    override fun putNodes(nodes: List<Node>) {
+    override suspend fun putStat(stat: Stat) {
         transaction {
             val parent = StatEntity.new {
-                dateUpdated = Date().time
+                dateUpdated = stat.dateUpdated
             }
 
-            nodes.forEach {
+            stat.nodes.forEach {
                 NodeEntity.new {
                     nodeName = it.nodeName
                     value = it.value
                     parentStat = parent
                 }
             }
+        }
+    }
+
+    override suspend fun putStats(stats: List<Stat>) {
+        stats.forEach { stat ->
+            putStat(stat)
         }
     }
 

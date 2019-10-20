@@ -5,7 +5,7 @@ import com.alekseyld.db.tables.Stat
 
 interface IStatService {
 
-    fun putNodes(nodes: List<Node>)
+    suspend fun putNodes(nodes: List<Node>)
 
     fun getAllStats() : List<Stat>
 

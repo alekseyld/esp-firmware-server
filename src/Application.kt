@@ -42,9 +42,9 @@ fun Application.module(testing: Boolean = false) {
             object : TypeToken<Map<String, String>>() {}.type
         )
 
-        AppConfiguration.firebaseUrl = config["firebaseUrl"]!!
-        AppConfiguration.authToken = config["authToken"]!!
-        AppConfiguration.node = config["node"]!!
+        AppConfiguration.firebaseUrl = config.getOrDefault("firebaseUrl", "")
+        AppConfiguration.authToken = config.getOrDefault("authToken", "")
+        AppConfiguration.node = config.getOrDefault("node", "")
     }
 
     routing {

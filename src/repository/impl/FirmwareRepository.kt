@@ -30,6 +30,8 @@ class FirmwareRepository : IFirmwareRepository {
     private fun getFileNameByMac(macAddress: String) : String {
         val macListFile = File("firmwares/firmwares.json")
 
+        //TODO сохранение в БД
+
         if (!macListFile.exists()) {
             macListFile.createNewFile()
 

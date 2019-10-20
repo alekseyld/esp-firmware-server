@@ -7,27 +7,29 @@ import com.alekseyld.di.inject
 import com.alekseyld.repository.IStatRepository
 import com.alekseyld.utils.format
 import com.google.gson.Gson
+import com.google.gson.reflect.TypeToken
 import io.ktor.client.HttpClient
+import io.ktor.client.request.get
 import io.ktor.client.request.post
 import io.ktor.client.request.url
 import io.ktor.content.TextContent
 import io.ktor.http.ContentType
 import kotlinx.coroutines.runBlocking
-import java.util.*
 
-//GET https://lysovda-sh.firebaseio.com/.json?auth={token}
-//GET https://lysovda-sh.firebaseio.com/temps.json?auth={token}
+//GET https://.firebaseio.com/.json?auth={token}
+//GET https://.firebaseio.com/temps.json?auth={token}
 
 //Для перезаписи
-//PUT https://lysovda-sh.firebaseio.com/temps.json?auth=
+//PUT https://firebaseio.com/temps.json?auth=
 //Body - {"id":"1", "temp":"22.0","time": {".sv":"timestamp"}}
 
 //Для добавления
-//POST https://lysovda-sh.firebaseio.com/temps.json?auth=
+//POST https://.firebaseio.com/temps.json?auth=
 //Body - {"id":"1", "temp":"22.0","time": {".sv":"timestamp"}}
 
 class FirebaseRepository(
-    private val gson: Gson
+    private val gson: Gson,
+    private val typeToken: TypeToken<List<FirebaseModel>>
 ) : IStatRepository {
 
     data class FirebaseModel(
@@ -46,26 +48,72 @@ class FirebaseRepository(
     private val nodeUrl =
         "${AppConfiguration.firebaseUrl}${AppConfiguration.node}.json?auth=${AppConfiguration.authToken}"
 
-    override fun putNodes(nodes: List<Node>) {
-        runBlocking { //FIXME to suspend fun
+    private suspend fun putNode(node: Node, time: Long) {
+        val httpClient by inject<HttpClient>()
 
-            val dateLong = Date().time
+        httpClient.post<Unit> {
+            url(nodeUrl)
+            body = TextContent(
+                gson.toJson(
+                    node.firebaseModel(time)
+                ),
+                ContentType.Application.Json
+            )
+        }
 
-            val httpClient by inject<HttpClient>()
+        httpClient.close()
+    }
 
-            httpClient.post<Unit> {
-                url(nodeUrl)
-                body = TextContent(
-                    gson.toJson(
-                        nodes.map { it.firebaseModel(dateLong) }
-                    ),
-                    ContentType.Application.Json
-                )
-            }
+    override suspend fun putStat(stat: Stat) {
+        stat.nodes.forEach {
+            putNode(it, stat.dateUpdated)
+        }
+    }
+
+    override suspend fun putStats(stats: List<Stat>) {
+        stats.forEach { stat ->
+            putStat(stat)
         }
     }
 
     override fun getAllStats(): List<Stat> {
-        TODO("not implemented") //To change body of created functions use File | Settings | File Templates.
+        return runBlocking {
+
+            val httpClient by inject<HttpClient>()
+
+            val json = httpClient.get<String> {
+                url(nodeUrl)
+            }
+
+            val models = gson.fromJson<List<FirebaseModel>>(json, typeToken.type)
+
+            if (models.isNullOrEmpty().not()) {
+
+                var i = 0
+                val stats = mutableListOf(
+                        Stat(models[0].time, mutableListOf())
+                    )
+
+                models.forEach {
+
+                    //FIXME IF List not sorted
+                    if (stats[i].dateUpdated != it.time) {
+                        stats.add(
+                            Stat(it.time, mutableListOf())
+                        )
+                        i++
+                    }
+
+                    (stats[i].nodes as MutableList)
+                        .add(Node(
+                            nodeName = it.id,
+                            value = it.temp.toFloat()
+                        ))
+                }
+
+                return@runBlocking stats
+
+            } else emptyList<Stat>()
+        }
     }
 }

@@ -1,6 +1,7 @@
 package com.alekseyld.controller
 
 import com.alekseyld.db.tables.Node
+import com.alekseyld.di.TYPE_NODE
 import com.alekseyld.service.IStatService
 import com.google.gson.Gson
 import com.google.gson.JsonSyntaxException
@@ -13,6 +14,9 @@ import io.ktor.response.respondText
 import io.ktor.routing.Routing
 import io.ktor.routing.get
 import io.ktor.routing.put
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.withContext
+import org.koin.core.qualifier.named
 import org.koin.ktor.ext.inject
 
 fun Routing.statController() {
@@ -20,7 +24,7 @@ fun Routing.statController() {
     val statService by inject<IStatService>()
 
     val gson by inject<Gson>()
-    val nodeTypeToken by inject<TypeToken<List<Node>>>()
+    val nodeTypeToken by inject<TypeToken<List<Node>>>(named(TYPE_NODE))
 
     /* Body example
      *   [{"nodeName":"Name 1", "value": 10.0}, {"nodeName":"Name 2", "value": 15.0}]
@@ -35,7 +39,10 @@ fun Routing.statController() {
 
         call.respond(
             if (nodes.isNullOrEmpty().not()) {
-                statService.putNodes(nodes)
+
+                withContext(Dispatchers.IO) {
+                    statService.putNodes(nodes)
+                }
 
                 HttpStatusCode.OK
             } else {

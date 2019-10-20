@@ -4,6 +4,7 @@ import org.jetbrains.exposed.dao.EntityID
 import org.jetbrains.exposed.dao.IntEntity
 import org.jetbrains.exposed.dao.IntEntityClass
 import org.jetbrains.exposed.dao.IntIdTable
+import java.util.*
 
 object TableNodes : IntIdTable() {
     val parentStat = reference("parentStat", TableStats)
@@ -25,3 +26,9 @@ data class Node(
     val nodeName: String,
     val value: Float
 )
+
+fun List<Node>.toStat() : Stat =
+    Stat(
+        Date().time,
+        this
+    )
