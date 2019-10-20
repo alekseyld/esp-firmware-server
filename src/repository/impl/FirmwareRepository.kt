@@ -70,7 +70,7 @@ class FirmwareRepository : IFirmwareRepository {
 
         val fileName = getFileNameByMac(macAddress)
 
-        val file = File(fileName)
+        val file = File("./firmwares/$fileName")
 
         return if (file.exists()) file
         else null
