@@ -1,5 +1,6 @@
 package com.alekseyld.service.impl
 
+import com.alekseyld.AppConfiguration
 import com.alekseyld.db.tables.Node
 import com.alekseyld.db.tables.Stat
 import com.alekseyld.db.tables.toStat
@@ -20,8 +21,15 @@ class StatService(
         //TODO в firebase должно быть только 5 значений
 
         val statsFromFB = firebaseRepository.getAllStats()
+            .toMutableList()
 
-        firebaseRepository.putStat(stat)
+        if (statsFromFB.size > AppConfiguration.firebaseCount) {
+            statsFromFB.removeAt(0)
+        }
+
+        statsFromFB.add(stat)
+
+        firebaseRepository.putStats(statsFromFB)
     }
 
     override fun getAllStats(): List<Stat> =

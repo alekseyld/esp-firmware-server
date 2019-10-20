@@ -17,6 +17,7 @@ object AppConfiguration{
     lateinit var firebaseUrl: String
     lateinit var authToken: String
     lateinit var node: String
+    var firebaseCount: Int = 5
 }
 
 fun main(args: Array<String>): Unit {
@@ -42,9 +43,17 @@ fun Application.module(testing: Boolean = false) {
             object : TypeToken<Map<String, String>>() {}.type
         )
 
-        AppConfiguration.firebaseUrl = config.getOrDefault("firebaseUrl", "")
-        AppConfiguration.authToken = config.getOrDefault("authToken", "")
-        AppConfiguration.node = config.getOrDefault("node", "")
+        AppConfiguration.firebaseUrl =
+            config.getOrDefault("firebaseUrl", "")
+
+        AppConfiguration.authToken =
+            config.getOrDefault("authToken", "")
+
+        AppConfiguration.node =
+            config.getOrDefault("node", "")
+
+        AppConfiguration.firebaseCount =
+            config.getOrDefault("firebaseCount", "").toInt()
     }
 
     routing {

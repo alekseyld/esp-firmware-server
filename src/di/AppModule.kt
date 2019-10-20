@@ -60,6 +60,6 @@ val appModule = module {
     single(named(TYPE_NODE)) { object : TypeToken<List<Node>>() {} }
 
     single(named(TYPE_FIREBASE_MODEL))
-        { object : TypeToken<List<FirebaseRepository.FirebaseModel>>() {} }
+        { object : TypeToken<Map<String, FirebaseRepository.FirebaseModel>>() {} }
 
 }

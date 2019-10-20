@@ -9,6 +9,7 @@ import com.alekseyld.utils.format
 import com.google.gson.Gson
 import com.google.gson.reflect.TypeToken
 import io.ktor.client.HttpClient
+import io.ktor.client.request.delete
 import io.ktor.client.request.get
 import io.ktor.client.request.post
 import io.ktor.client.request.url
@@ -29,7 +30,7 @@ import kotlinx.coroutines.runBlocking
 
 class FirebaseRepository(
     private val gson: Gson,
-    private val typeToken: TypeToken<List<FirebaseModel>>
+    private val typeToken: TypeToken<Map<String, FirebaseModel>>
 ) : IStatRepository {
 
     data class FirebaseModel(
@@ -70,7 +71,19 @@ class FirebaseRepository(
         }
     }
 
+    private suspend fun deleteStats() {
+        val httpClient by inject<HttpClient>()
+
+        httpClient.delete<Unit> {
+            url(nodeUrl)
+        }
+
+        httpClient.close()
+    }
+
     override suspend fun putStats(stats: List<Stat>) {
+        deleteStats()
+
         stats.forEach { stat ->
             putStat(stat)
         }
@@ -85,7 +98,10 @@ class FirebaseRepository(
                 url(nodeUrl)
             }
 
-            val models = gson.fromJson<List<FirebaseModel>>(json, typeToken.type)
+            val models = gson.fromJson<Map<String, FirebaseModel>>(json, typeToken.type)
+                .map {
+                    it.value
+                }
 
             if (models.isNullOrEmpty().not()) {
 
